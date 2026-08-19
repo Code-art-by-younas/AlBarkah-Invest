@@ -1,7 +1,7 @@
 interface AccountSummaryProps {
   totalInvested: number;
   totalWithdrawn: number;
-  totalPayout: number;
+  // totalPayout: number;  // ✅ REMOVED
   totalReferral: number;
   pendingDeposit: number;
   pendingWithdrawal: number;
@@ -12,7 +12,7 @@ interface AccountSummaryProps {
 export function AccountSummary({
   totalInvested,
   totalWithdrawn,
-  totalPayout,
+  // totalPayout,  // ✅ REMOVED
   totalReferral,
   pendingDeposit,
   pendingWithdrawal,
@@ -22,7 +22,7 @@ export function AccountSummary({
   const items = [
     { label: "TOTAL INVESTED", value: totalInvested, icon: "💰" },
     { label: "WITHDRAWAL", value: totalWithdrawn, icon: "💸" },
-    { label: "PAYOUT", value: totalPayout, icon: "📤" },
+    // { label: "PAYOUT", value: totalPayout, icon: "📤" },  // ✅ REMOVED
     { label: "REFER BONUS", value: totalReferral, icon: "👥" },
     { label: "PENDING DEPOSIT", value: pendingDeposit, icon: "⏳" },
     { label: "PENDING WITHDRAWAL", value: pendingWithdrawal, icon: "⏳" },
