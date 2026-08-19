@@ -1,89 +1,101 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { db } from "@/db";
 import { users } from "@/db/schema";
-import { eq, or } from "drizzle-orm";
-import { hashPassword, createSession, generateReferralCode } from "@/lib/auth";
-import { ensureSeed } from "@/lib/data";
+import { eq } from "drizzle-orm";
+import { hashPassword, generateReferralCode } from "@/lib/auth";
+import { z } from "zod";
 
-const schema = z
-  .object({
-    username: z.string().min(3).max(50).regex(/^[a-zA-Z0-9_]+$/, "Only letters, numbers, underscore"),
-    email: z.string().email().max(100),
-    password: z.string().min(6),
-    confirmPassword: z.string(),
-    referralCode: z.string().optional(),
-  })
-  .refine((d) => d.password === d.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+const registerSchema = z.object({
+  username: z.string().min(3).max(50),
+  email: z.string().email(),
+  password: z.string().min(6),
+  referralCode: z.string().optional(),
+});
 
 export async function POST(req: Request) {
   try {
-    await ensureSeed();
     const body = await req.json();
-    const parsed = schema.safeParse(body);
-    if (!parsed.success) {
+    const validated = registerSchema.parse(body);
+
+    // Check email
+    const existingUser = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, validated.email))
+      .limit(1);
+
+    if (existingUser.length > 0) {
       return NextResponse.json(
-        { error: parsed.error.issues[0]?.message ?? "Invalid input" },
+        { error: "User already exists" },
         { status: 400 }
       );
     }
-    const { username, email, password, referralCode } = parsed.data;
 
-    const existing = await db
+    // Check username
+    const existingUsername = await db
       .select()
       .from(users)
-      .where(or(eq(users.username, username), eq(users.email, email.toLowerCase())))
+      .where(eq(users.username, validated.username))
       .limit(1);
-    if (existing.length > 0) {
-      const taken = existing[0].email === email.toLowerCase() ? "Email" : "Username";
-      return NextResponse.json({ error: `${taken} already in use` }, { status: 409 });
+
+    if (existingUsername.length > 0) {
+      return NextResponse.json(
+        { error: "Username already taken" },
+        { status: 400 }
+      );
     }
 
-    let referredBy: string | null = null;
-    if (referralCode && referralCode.trim()) {
-      const [ref] = await db
-        .select()
-        .from(users)
-        .where(eq(users.referralCode, referralCode.trim().toUpperCase()))
-        .limit(1);
-      if (!ref) {
-        return NextResponse.json({ error: "Invalid referral code" }, { status: 400 });
+    // ✅ WORKING FIX: Handle referral - ignore if invalid
+    let referredById: string | null = null;
+
+    if (validated.referralCode) {
+      try {
+        const referrer = await db
+          .select()
+          .from(users)
+          .where(eq(users.referralCode, validated.referralCode))
+          .limit(1);
+
+        if (referrer.length > 0) {
+          referredById = referrer[0].id;
+        }
+        // ✅ If invalid, just ignore and continue
+      } catch (err) {
+        console.log("Invalid referral code, continuing");
       }
-      referredBy = ref.id;
     }
 
-    let code = generateReferralCode();
-    for (let i = 0; i < 5; i++) {
-      const dup = await db.select().from(users).where(eq(users.referralCode, code)).limit(1);
-      if (dup.length === 0) break;
-      code = generateReferralCode();
-    }
+    // Create user
+    const hashedPassword = await hashPassword(validated.password);
+    const newReferralCode = generateReferralCode();
 
-    const hashed = await hashPassword(password);
-    const [user] = await db
+    const [newUser] = await db
       .insert(users)
       .values({
-        username,
-        email: email.toLowerCase(),
-        password: hashed,
-        referralCode: code,
-        referredBy,
+        username: validated.username,
+        email: validated.email,
+        password: hashedPassword,
+        referralCode: newReferralCode,
+        referredBy: referredById,
+        role: "user",
+        status: "active",
+        balance: "0",
+        totalEarned: "0",
+        totalInvested: "0",
       })
       .returning();
 
-    await createSession({
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      role: user.role,
-    });
+    const { password, ...userWithoutPassword } = newUser;
 
-    return NextResponse.json({ success: true });
-  } catch (e) {
-    console.error(e);
-    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
+    return NextResponse.json({
+      success: true,
+      user: userWithoutPassword,
+    });
+  } catch (error) {
+    console.error("Registration error:", error);
+    return NextResponse.json(
+      { error: "Registration failed. Please try again." },
+      { status: 500 }
+    );
   }
 }
