@@ -1,66 +1,51 @@
-import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { getSession } from "@/lib/auth";
 
-export default withAuth(
-  function middleware(req) {
-    const token = req.nextauth.token;
-    const isAuth = !!token;
-    const isAuthPage = req.nextUrl.pathname.startsWith("/login") ||
-                       req.nextUrl.pathname.startsWith("/register");
-    const isAdminPage = req.nextUrl.pathname.startsWith("/admin");
-    const isUserPage = req.nextUrl.pathname.startsWith("/dashboard") ||
-                       req.nextUrl.pathname.startsWith("/plans") ||
-                       req.nextUrl.pathname.startsWith("/deposit") ||
-                       req.nextUrl.pathname.startsWith("/withdrawal") ||
-                       req.nextUrl.pathname.startsWith("/referrals") ||
-                       req.nextUrl.pathname.startsWith("/transactions") ||
-                       req.nextUrl.pathname.startsWith("/support");
+export async function middleware(request: NextRequest) {
+  const session = await getSession();
+  const { pathname } = request.nextUrl;
 
-    // Agar user logged in nahi hai aur admin page par jana chahta hai
-    if (!isAuth && isAdminPage) {
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
+  // Protected routes (jahan login zaroori hai)
+  const protectedRoutes = [
+    "/dashboard",
+    "/admin",
+    "/deposit",
+    "/withdrawal",
+    "/transactions",
+    "/referrals",
+    "/plans",
+    "/support",
+  ];
 
-    // Agar user logged in nahi hai aur user page par jana chahta hai
-    if (!isAuth && isUserPage) {
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
+  const isProtected = protectedRoutes.some((route) =>
+    pathname.startsWith(route)
+  );
 
-    // Agar user logged in hai aur auth page par jana chahta hai (login/register)
-    if (isAuth && isAuthPage) {
-      // Agar admin hai toh admin dashboard par bhejo
-      if (token?.role === "admin") {
-        return NextResponse.redirect(new URL("/admin", req.url));
-      }
-      // Warna user dashboard par bhejo
-      return NextResponse.redirect(new URL("/dashboard", req.url));
-    }
+  const isAdmin = pathname.startsWith("/admin");
 
-    // Agar user logged in hai aur admin page par jana chahta hai lekin admin nahi hai
-    if (isAuth && isAdminPage && token?.role !== "admin") {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
-    }
-
-    return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: ({ token }) => true, // Middleware handle karega
-    },
+  // Agar protected route hai aur session nahi hai → login pe bhejein
+  if (isProtected && !session) {
+    return NextResponse.redirect(new URL("/login", request.url));
   }
-);
+
+  // Agar admin route hai aur session mein role admin nahi → login pe bhejein
+  if (isAdmin && (!session || session.role !== "admin")) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [
     "/dashboard/:path*",
     "/admin/:path*",
-    "/plans/:path*",
     "/deposit/:path*",
     "/withdrawal/:path*",
-    "/referrals/:path*",
     "/transactions/:path*",
+    "/referrals/:path*",
+    "/plans/:path*",
     "/support/:path*",
-    "/login",
-    "/register",
   ],
 };
