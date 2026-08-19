@@ -109,19 +109,7 @@ export default async function DashboardPage() {
     );
   const totalWithdrawn = withdrawnResult[0]?.total || 0;
 
-  // Total Payout (total earned from all sources)
-  const payoutResult = await db
-    .select({
-      total: sql<number>`SUM(${transactions.amount})`,
-    })
-    .from(transactions)
-    .where(
-      and(
-        eq(transactions.userId, session.id),
-        sql`${transactions.amount} > 0`
-      )
-    );
-  const totalPayout = payoutResult[0]?.total || 0;
+  // ✅ PAYOUT REMOVED - No longer needed
 
   // Total Referral Bonus
   const referralResult = await db
@@ -349,11 +337,11 @@ export default async function DashboardPage() {
         )}
       </div>
 
-      {/* ===== ACCOUNT SUMMARY (Now Below Recent Transactions) ===== */}
+      {/* ===== ACCOUNT SUMMARY (Without PAYOUT) ===== */}
       <AccountSummary
         totalInvested={totalInvested}
         totalWithdrawn={totalWithdrawn}
-        totalPayout={totalPayout}
+        // totalPayout removed
         totalReferral={totalReferral}
         pendingDeposit={pendingDeposit}
         pendingWithdrawal={pendingWithdrawal}
