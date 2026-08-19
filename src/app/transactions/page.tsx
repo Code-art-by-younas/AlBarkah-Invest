@@ -5,12 +5,16 @@ import { eq, desc } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { formatDistanceToNow } from "date-fns";
 
+// ✅ Import Transaction type from schema
+import type { Transaction } from "@/db/schema";
+
 export default async function TransactionsPage() {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  let rows = [];
-  let error = null;
+  // ✅ Explicitly type rows as Transaction[]
+  let rows: Transaction[] = [];
+  let error: string | null = null;
 
   try {
     rows = await db
@@ -69,7 +73,7 @@ export default async function TransactionsPage() {
           </a>
         </div>
       ) : (
-        <div className="rounded-xl bg-white shadow-sm overflow-x-auto">
+        <div className="overflow-x-auto rounded-xl bg-white shadow-sm">
           <table className="w-full text-sm">
             <thead className="border-b border-gray-100 bg-gray-50/50">
               <tr>
