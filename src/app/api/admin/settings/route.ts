@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { db } from "@/db";
-import { settings } from "@/db/schema";
+import { settings, users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 // ✅ GET Settings
@@ -74,7 +74,6 @@ export async function PUT(req: Request) {
     const [existing] = await db.select().from(settings).limit(1);
 
     if (existing) {
-      // Update existing settings
       await db
         .update(settings)
         .set({
@@ -91,7 +90,6 @@ export async function PUT(req: Request) {
         })
         .where(eq(settings.id, existing.id));
     } else {
-      // Insert new settings
       await db.insert(settings).values({
         siteName: body.siteName || "AlBarkah Invest",
         siteLogo: body.siteLogo || null,
