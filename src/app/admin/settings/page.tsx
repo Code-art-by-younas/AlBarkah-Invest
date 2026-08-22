@@ -46,9 +46,7 @@ export default function AdminSettingsPage() {
   const fetchSettings = async () => {
     try {
       const res = await fetch("/api/admin/settings");
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
       const data = await res.json();
       setSettings({ ...DEFAULT_SETTINGS, ...data });
     } catch (err) {
