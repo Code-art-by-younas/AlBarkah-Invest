@@ -14,32 +14,18 @@ export default async function DepositPage() {
     totalProfit: p.totalProfit,
   }));
 
-  // Payment methods array with details from settings
+  // ✅ Only SadaPay & OPay
   const paymentMethods = [
     {
-      id: "easypaisa",
-      label: "Easypaisa",
-      icon: "📱",
-      accountName: settings.easypaisaName,
-      accountNumber: settings.easypaisaNumber,
-    },
-    {
-      id: "jazzcash",
-      label: "Jazzcash",
-      icon: "📱",
-      accountName: settings.jazzcashName,
-      accountNumber: settings.jazzcashNumber,
-    },
-    {
       id: "opay",
-      label: "Opay",
+      label: "OPay",
       icon: "💳",
       accountName: settings.opayName,
       accountNumber: settings.opayNumber,
     },
     {
       id: "sadapay",
-      label: "Sadapay",
+      label: "SadaPay",
       icon: "💳",
       accountName: settings.sadapayName,
       accountNumber: settings.sadapayNumber,
@@ -58,7 +44,7 @@ export default async function DepositPage() {
       {/* Payment Methods Selection */}
       <div className="rounded-2xl border border-[#ffd700]/50 bg-[#fffbe6] p-5">
         <h2 className="font-bold text-[#0a2e1c]">💳 Select Payment Method</h2>
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-2">
           {paymentMethods.map((method) => (
             <div
               key={method.id}
