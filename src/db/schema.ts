@@ -60,6 +60,7 @@ export const deposits = pgTable("deposits", {
   screenshot: text("screenshot").notNull(),
   senderName: varchar("sender_name", { length: 100 }),
   transactionId: varchar("transaction_id", { length: 100 }),
+  paymentMethod: varchar("payment_method", { length: 50 }), // ✅ new field for method
   status: varchar("status", { length: 20 }).default("pending").notNull(),
   adminNote: text("admin_note"),
   approvedAt: timestamp("approved_at"),
@@ -114,12 +115,27 @@ export const settings = pgTable("settings", {
   id: uuid("id").primaryKey().defaultRandom(),
   siteName: varchar("site_name", { length: 100 }).default("AlBarkah Invest").notNull(),
   siteLogo: text("site_logo"),
+  
+  // OPay
   opayName: varchar("opay_name", { length: 100 }).default("Muhammad Shahzad Pervaiz").notNull(),
   opayNumber: varchar("opay_number", { length: 20 }).default("03320613270").notNull(),
+  
+  // ✅ Easypaisa
+  easypaisaName: varchar("easypaisa_name", { length: 100 }).default("Muhammad Shahzad Pervaiz").notNull(),
+  easypaisaNumber: varchar("easypaisa_number", { length: 20 }).default("03320613270").notNull(),
+  
+  // ✅ Jazzcash
+  jazzcashName: varchar("jazzcash_name", { length: 100 }).default("Muhammad Shahzad Pervaiz").notNull(),
+  jazzcashNumber: varchar("jazzcash_number", { length: 20 }).default("03320613270").notNull(),
+  
+  // ✅ Sadapay
+  sadapayName: varchar("sadapay_name", { length: 100 }).default("Muhammad Shahzad Pervaiz").notNull(),
+  sadapayNumber: varchar("sadapay_number", { length: 20 }).default("03320613270").notNull(),
+  
   minDeposit: numeric("min_deposit", { precision: 20, scale: 2 }).default("290").notNull(),
-  minWithdrawal: numeric("min_withdrawal", { precision: 20, scale: 2 }).default("30").notNull(),
+  minWithdrawal: numeric("min_withdrawal", { precision: 20, scale: 2 }).default("29").notNull(),
   referralLevels: jsonb("referral_levels")
-    .default({ level1: 11, level2: 4, level3: 3, level4: 2 })
+    .default({ level1: 11, level2: 3, level3: 2, level4: 1 })
     .notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
