@@ -1,166 +1,170 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 
-type PlanData = {
+interface Plan {
   id: string;
   name: string;
   amount: string;
   dailyProfit: string;
   totalProfit: string;
-};
-
-function fmt(v: string) {
-  const n = parseFloat(v);
-  return new Intl.NumberFormat("en-PK").format(n) + " PKR";
 }
 
-function Inner({ plans }: { plans: PlanData[] }) {
+interface PaymentMethod {
+  id: string;
+  label: string;
+  icon: string;
+  accountName: string;
+  accountNumber: string;
+}
+
+export function DepositForm({
+  plans,
+  paymentMethods,
+}: {
+  plans: Plan[];
+  paymentMethods: PaymentMethod[];
+}) {
   const router = useRouter();
-  const params = useSearchParams();
-  const [planId, setPlanId] = useState(params.get("plan") ?? plans[0]?.id ?? "");
-  const [senderName, setSenderName] = useState("");
-  const [transactionId, setTransactionId] = useState("");
-  const [screenshot, setScreenshot] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<string>("");
+  const [selectedMethod, setSelectedMethod] = useState<string>("");
+  const [screenshot, setScreenshot] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const selected = plans.find((p) => p.id === planId);
-
-  useEffect(() => {
-    const p = params.get("plan");
-    if (p && plans.some((pl) => pl.id === p)) setPlanId(p);
-  }, [params, plans]);
-
-  function onFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      setError("Image must be under 2MB");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => setScreenshot(reader.result as string);
-    reader.readAsDataURL(file);
-    setError("");
-  }
-
-  async function submit(e: React.FormEvent) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    if (!screenshot) {
-      setError("Please upload your payment screenshot");
+    if (!selectedPlan || !selectedMethod || !screenshot) {
+      toast.error("Please select a plan, payment method, and upload screenshot.");
       return;
     }
+
     setLoading(true);
+    const formData = new FormData();
+    formData.append("planId", selectedPlan);
+    formData.append("method", selectedMethod);
+    formData.append("screenshot", screenshot);
+
     try {
       const res = await fetch("/api/deposit", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId, screenshot, senderName, transactionId }),
+        body: formData,
       });
       const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "Failed to submit");
-        setLoading(false);
-        return;
-      }
-      setSuccess(true);
-      setTimeout(() => {
+      if (res.ok) {
+        toast.success("Deposit request submitted! Waiting for admin approval.");
         router.push("/dashboard");
         router.refresh();
-      }, 1500);
-    } catch {
-      setError("Network error");
+      } else {
+        toast.error(data.error || "Something went wrong.");
+      }
+    } catch (err) {
+      toast.error("Failed to submit deposit.");
+    } finally {
       setLoading(false);
     }
-  }
+  };
 
-  const input =
-    "w-full rounded-lg border border-black/10 px-3 py-2.5 text-sm outline-none focus:border-[#0a2e1c] focus:ring-2 focus:ring-[#0a2e1c]/10";
-
-  if (success) {
-    return (
-      <div className="rounded-2xl border border-green-200 bg-green-50 p-8 text-center">
-        <div className="text-4xl">✅</div>
-        <h2 className="mt-2 font-bold text-green-800">Deposit submitted!</h2>
-        <p className="text-sm text-green-700">
-          Your deposit is pending admin approval. Redirecting to dashboard...
-        </p>
-      </div>
-    );
-  }
+  const selectedPlanData = plans.find((p) => p.id === selectedPlan);
+  const selectedMethodData = paymentMethods.find((m) => m.id === selectedMethod);
 
   return (
-    <form onSubmit={submit} className="rounded-2xl border border-black/5 bg-white p-6">
-      {error && <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
-
-      <label className="mb-1 block text-sm font-semibold text-[#0a2e1c]">Select Plan</label>
-      <select className={input} value={planId} onChange={(e) => setPlanId(e.target.value)}>
-        {plans.map((p) => (
-          <option key={p.id} value={p.id}>
-            {p.name} — {fmt(p.amount)}
-          </option>
-        ))}
-      </select>
-
-      {selected && (
-        <div className="mt-3 grid grid-cols-3 gap-2 rounded-xl bg-[#f5f5f5] p-3 text-center text-xs">
-          <div>
-            <div className="text-black/50">Amount</div>
-            <div className="font-bold text-[#0a2e1c]">{fmt(selected.amount)}</div>
-          </div>
-          <div>
-            <div className="text-black/50">Daily</div>
-            <div className="font-bold text-[#c9a227]">{fmt(selected.dailyProfit)}</div>
-          </div>
-          <div>
-            <div className="text-black/50">Total</div>
-            <div className="font-bold text-[#0a2e1c]">{fmt(selected.totalProfit)}</div>
-          </div>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Plan Selection */}
+      <div className="rounded-2xl bg-white p-5 shadow-sm">
+        <h3 className="font-bold text-[#0a2e1c]">1. Choose Your Plan</h3>
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {plans.map((plan) => (
+            <button
+              key={plan.id}
+              type="button"
+              onClick={() => setSelectedPlan(plan.id)}
+              className={`rounded-lg border p-3 text-center transition ${
+                selectedPlan === plan.id
+                  ? "border-[#ffd700] bg-[#ffd700]/10"
+                  : "border-gray-200 hover:border-[#ffd700]/50"
+              }`}
+            >
+              <p className="text-sm font-semibold text-[#0a2e1c]">{plan.name}</p>
+              <p className="text-lg font-bold text-[#0a2e1c]">
+                {Number(plan.amount).toFixed(0)} PKR
+              </p>
+              <p className="text-xs text-gray-500">
+                Daily: {Number(plan.dailyProfit).toFixed(0)} PKR
+              </p>
+            </button>
+          ))}
         </div>
-      )}
+        {selectedPlanData && (
+          <div className="mt-3 rounded-lg bg-gray-50 p-3 text-sm">
+            <p>
+              <span className="font-medium">Total Return:</span>{" "}
+              {Number(selectedPlanData.totalProfit).toFixed(0)} PKR (90 days)
+            </p>
+          </div>
+        )}
+      </div>
 
-      <label className="mb-1 mt-4 block text-sm font-semibold text-[#0a2e1c]">
-        Sender Name (optional)
-      </label>
-      <input className={input} value={senderName} onChange={(e) => setSenderName(e.target.value)} />
+      {/* Payment Method Selection */}
+      <div className="rounded-2xl bg-white p-5 shadow-sm">
+        <h3 className="font-bold text-[#0a2e1c]">2. Select Payment Method</h3>
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {paymentMethods.map((method) => (
+            <button
+              key={method.id}
+              type="button"
+              onClick={() => setSelectedMethod(method.id)}
+              className={`rounded-lg border p-3 text-center transition ${
+                selectedMethod === method.id
+                  ? "border-[#ffd700] bg-[#ffd700]/10"
+                  : "border-gray-200 hover:border-[#ffd700]/50"
+              }`}
+            >
+              <span className="text-2xl">{method.icon}</span>
+              <p className="mt-1 text-sm font-medium">{method.label}</p>
+            </button>
+          ))}
+        </div>
+        {selectedMethodData && (
+          <div className="mt-3 rounded-lg bg-gray-50 p-3 text-sm">
+            <p>
+              <span className="font-medium">Account Name:</span>{" "}
+              {selectedMethodData.accountName}
+            </p>
+            <p>
+              <span className="font-medium">Account Number:</span>{" "}
+              <span className="font-bold text-[#0a2e1c]">
+                {selectedMethodData.accountNumber}
+              </span>
+            </p>
+          </div>
+        )}
+      </div>
 
-      <label className="mb-1 mt-4 block text-sm font-semibold text-[#0a2e1c]">
-        Transaction ID (optional)
-      </label>
-      <input
-        className={input}
-        value={transactionId}
-        onChange={(e) => setTransactionId(e.target.value)}
-      />
-
-      <label className="mb-1 mt-4 block text-sm font-semibold text-[#0a2e1c]">
-        Payment Screenshot
-      </label>
-      <input type="file" accept="image/*" onChange={onFile} className="block text-sm" />
-      {screenshot && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={screenshot} alt="preview" className="mt-3 max-h-48 rounded-lg border border-black/10" />
-      )}
+      {/* Screenshot Upload */}
+      <div className="rounded-2xl bg-white p-5 shadow-sm">
+        <h3 className="font-bold text-[#0a2e1c]">3. Upload Payment Screenshot</h3>
+        <div className="mt-3">
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setScreenshot(e.target.files?.[0] || null)}
+            className="w-full rounded-lg border border-gray-300 p-2 text-sm"
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            Upload a clear screenshot of your successful transaction.
+          </p>
+        </div>
+      </div>
 
       <button
+        type="submit"
         disabled={loading}
-        className="mt-6 w-full rounded-lg bg-[#0a2e1c] py-2.5 font-bold text-white hover:bg-[#12503a] disabled:opacity-60"
+        className="w-full rounded-xl bg-[#ffd700] py-3 font-bold text-[#0a2e1c] transition hover:bg-[#e6c200] disabled:opacity-50"
       >
-        {loading ? "Submitting..." : "Submit Deposit"}
+        {loading ? "Submitting..." : "Submit Deposit Request"}
       </button>
     </form>
-  );
-}
-
-export function DepositForm({ plans }: { plans: PlanData[] }) {
-  return (
-    <Suspense>
-      <Inner plans={plans} />
-    </Suspense>
   );
 }
