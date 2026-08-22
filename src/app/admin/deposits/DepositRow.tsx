@@ -97,20 +97,22 @@ export function DepositRow({ deposit }: { deposit: Deposit }) {
           </div>
         )}
         {deposit.screenshot && (
-          <button
-            onClick={() => setShowScreenshot(!showScreenshot)}
-            className="mt-1 text-xs text-[#ffd700] hover:underline"
-          >
-            {showScreenshot ? "Hide Proof" : "View Proof"}
-          </button>
-        )}
-        {showScreenshot && deposit.screenshot && (
-          <div className="mt-2 rounded-lg border p-2">
-            <img
-              src={deposit.screenshot}
-              alt="Screenshot"
-              className="max-h-48 w-auto rounded"
-            />
+          <div className="mt-2">
+            <button
+              onClick={() => setShowScreenshot(!showScreenshot)}
+              className="text-xs text-[#ffd700] hover:underline"
+            >
+              {showScreenshot ? "Hide Proof" : "View Proof"}
+            </button>
+            {showScreenshot && (
+              <div className="mt-2 rounded-lg border p-2">
+                <img
+                  src={deposit.screenshot}
+                  alt="Screenshot"
+                  className="max-h-48 w-auto rounded"
+                />
+              </div>
+            )}
           </div>
         )}
       </td>
