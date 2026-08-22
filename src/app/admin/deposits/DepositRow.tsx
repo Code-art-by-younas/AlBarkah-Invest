@@ -83,14 +83,14 @@ export function DepositRow({ deposit }: { deposit: Deposit }) {
             <button
               onClick={() => handleAction("approved")}
               disabled={loading}
-              className="rounded-lg bg-green-600 px-3 py-1 text-xs font-semibold text-white hover:bg-green-700 disabled:opacity-50"
+              className="rounded-lg bg-green-600 px-3 py-1 text-xs font-semibold text-white transition hover:bg-green-700 disabled:opacity-50"
             >
               Approve
             </button>
             <button
               onClick={() => handleAction("rejected")}
               disabled={loading}
-              className="rounded-lg bg-red-600 px-3 py-1 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+              className="rounded-lg bg-red-600 px-3 py-1 text-xs font-semibold text-white transition hover:bg-red-700 disabled:opacity-50"
             >
               Reject
             </button>
