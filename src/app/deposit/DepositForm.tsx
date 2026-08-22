@@ -71,7 +71,7 @@ export function DepositForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Plan Selection */}
+      {/* ===== Plan Selection ===== */}
       <div className="rounded-2xl bg-white p-5 shadow-sm">
         <h3 className="font-bold text-[#0a2e1c]">1. Choose Your Plan</h3>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -106,10 +106,10 @@ export function DepositForm({
         )}
       </div>
 
-      {/* Payment Method Selection */}
+      {/* ===== Payment Method Selection (Only OPay & SadaPay) ===== */}
       <div className="rounded-2xl bg-white p-5 shadow-sm">
         <h3 className="font-bold text-[#0a2e1c]">2. Select Payment Method</h3>
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-2">
           {paymentMethods.map((method) => (
             <button
               key={method.id}
@@ -142,7 +142,7 @@ export function DepositForm({
         )}
       </div>
 
-      {/* Screenshot Upload */}
+      {/* ===== Screenshot Upload ===== */}
       <div className="rounded-2xl bg-white p-5 shadow-sm">
         <h3 className="font-bold text-[#0a2e1c]">3. Upload Payment Screenshot</h3>
         <div className="mt-3">
