@@ -26,12 +26,19 @@ export default async function AdminDepositsPage() {
     .leftJoin(plans, eq(deposits.planId, plans.id))
     .orderBy(desc(deposits.createdAt));
 
+  // ✅ Convert Date objects to strings for the component
+  const formattedDeposits = allDeposits.map((deposit) => ({
+    ...deposit,
+    approvedAt: deposit.approvedAt ? deposit.approvedAt.toISOString() : null,
+    createdAt: deposit.createdAt.toISOString(),
+  }));
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-extrabold text-[#0a2e1c]">Deposits</h1>
         <span className="text-sm text-gray-500">
-          {allDeposits.filter((d) => d.status === "pending").length} pending
+          {formattedDeposits.filter((d) => d.status === "pending").length} pending
         </span>
       </div>
 
@@ -49,14 +56,14 @@ export default async function AdminDepositsPage() {
             </tr>
           </thead>
           <tbody>
-            {allDeposits.length === 0 ? (
+            {formattedDeposits.length === 0 ? (
               <tr>
                 <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
                   No deposits found.
                 </td>
               </tr>
             ) : (
-              allDeposits.map((deposit) => (
+              formattedDeposits.map((deposit) => (
                 <DepositRow key={deposit.id} deposit={deposit} />
               ))
             )}
