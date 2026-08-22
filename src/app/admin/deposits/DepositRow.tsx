@@ -12,8 +12,8 @@ interface Deposit {
   paymentMethod: string | null;
   status: string;
   adminNote: string | null;
-  approvedAt: string | null; // ✅ Now string
-  createdAt: string; // ✅ Now string
+  approvedAt: string | null; // ✅ now string
+  createdAt: string; // ✅ now string
   username: string | null;
   email: string | null;
   planName: string | null;
