@@ -14,36 +14,70 @@ export default async function DepositPage() {
     totalProfit: p.totalProfit,
   }));
 
+  // Payment methods array with details from settings
+  const paymentMethods = [
+    {
+      id: "easypaisa",
+      label: "Easypaisa",
+      icon: "📱",
+      accountName: settings.easypaisaName,
+      accountNumber: settings.easypaisaNumber,
+    },
+    {
+      id: "jazzcash",
+      label: "Jazzcash",
+      icon: "📱",
+      accountName: settings.jazzcashName,
+      accountNumber: settings.jazzcashNumber,
+    },
+    {
+      id: "opay",
+      label: "Opay",
+      icon: "💳",
+      accountName: settings.opayName,
+      accountNumber: settings.opayNumber,
+    },
+    {
+      id: "sadapay",
+      label: "Sadapay",
+      icon: "💳",
+      accountName: settings.sadapayName,
+      accountNumber: settings.sadapayNumber,
+    },
+  ];
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-extrabold text-[#0a2e1c]">Make a Deposit</h1>
-        <p className="text-sm text-black/60">Pay via OPay, then submit your payment proof for approval.</p>
-      </div>
-
-      <div className="rounded-2xl border border-[#ffd700]/50 bg-[#fffbe6] p-5">
-        <h2 className="font-bold text-[#0a2e1c]">💳 OPay Payment Details</h2>
-        <div className="mt-3 grid gap-2 text-sm sm:grid-cols-3">
-          <div className="rounded-lg bg-white p-3">
-            <div className="text-xs text-black/50">Account Name</div>
-            <div className="font-bold text-[#0a2e1c]">{settings.opayName}</div>
-          </div>
-          <div className="rounded-lg bg-white p-3">
-            <div className="text-xs text-black/50">OPay Number</div>
-            <div className="font-bold text-[#0a2e1c]">{settings.opayNumber}</div>
-          </div>
-          <div className="rounded-lg bg-white p-3">
-            <div className="text-xs text-black/50">Min Deposit</div>
-            <div className="font-bold text-[#0a2e1c]">{settings.minDeposit} PKR</div>
-          </div>
-        </div>
-        <p className="mt-3 text-xs text-black/60">
-          Transfer the exact plan amount to the OPay number above, take a screenshot of the successful
-          transaction, then submit it below.
+        <p className="text-sm text-black/60">
+          Choose a plan, select payment method, then submit your payment proof for approval.
         </p>
       </div>
 
-      <DepositForm plans={plansData} />
+      {/* Payment Methods Selection */}
+      <div className="rounded-2xl border border-[#ffd700]/50 bg-[#fffbe6] p-5">
+        <h2 className="font-bold text-[#0a2e1c]">💳 Select Payment Method</h2>
+        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {paymentMethods.map((method) => (
+            <div
+              key={method.id}
+              className="rounded-lg bg-white p-3 text-center shadow-sm"
+            >
+              <span className="text-2xl">{method.icon}</span>
+              <p className="mt-1 text-sm font-semibold text-[#0a2e1c]">
+                {method.label}
+              </p>
+              <p className="text-xs text-black/50">{method.accountNumber}</p>
+            </div>
+          ))}
+        </div>
+        <p className="mt-3 text-xs text-black/60">
+          Transfer the exact plan amount to the selected method's account number, then upload the screenshot below.
+        </p>
+      </div>
+
+      <DepositForm plans={plansData} paymentMethods={paymentMethods} />
     </div>
   );
 }
