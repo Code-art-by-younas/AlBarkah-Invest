@@ -1,21 +1,22 @@
 import { db } from "@/db";
 import { deposits, users, plans } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
-import { formatPKR, formatDate } from "@/lib/format";
+import { eq, desc, and } from "drizzle-orm";
+import { formatDistanceToNow } from "date-fns";
 import { DepositRow } from "./DepositRow";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminDeposits() {
-  const rows = await db
+export default async function AdminDepositsPage() {
+  const allDeposits = await db
     .select({
       id: deposits.id,
+      userId: deposits.userId,
       amount: deposits.amount,
       screenshot: deposits.screenshot,
-      senderName: deposits.senderName,
-      transactionId: deposits.transactionId,
+      paymentMethod: deposits.paymentMethod,
       status: deposits.status,
       adminNote: deposits.adminNote,
+      approvedAt: deposits.approvedAt,
       createdAt: deposits.createdAt,
       username: users.username,
       email: users.email,
@@ -24,74 +25,45 @@ export default async function AdminDeposits() {
     .from(deposits)
     .leftJoin(users, eq(deposits.userId, users.id))
     .leftJoin(plans, eq(deposits.planId, plans.id))
-    .orderBy(desc(deposits.createdAt))
-    .limit(100);
+    .orderBy(desc(deposits.createdAt));
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-extrabold text-[#0a2e1c]">Deposits</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-extrabold text-[#0a2e1c]">Deposits</h1>
+        <span className="text-sm text-gray-500">
+          {allDeposits.filter((d) => d.status === "pending").length} pending
+        </span>
+      </div>
 
-      {rows.length === 0 ? (
-        <p className="rounded-2xl border border-black/5 bg-white p-8 text-center text-sm text-black/50">
-          No deposits yet.
-        </p>
-      ) : (
-        <div className="space-y-3">
-          {rows.map((r) => (
-            <div key={r.id} className="rounded-2xl border border-black/5 bg-white p-5">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <div className="font-bold text-[#0a2e1c]">
-                    {r.username} <span className="text-black/40">({r.email})</span>
-                  </div>
-                  <div className="mt-1 text-sm text-black/60">
-                    {r.planName} · {formatPKR(r.amount)} · {formatDate(r.createdAt)}
-                  </div>
-                  {r.senderName && (
-                    <div className="text-xs text-black/50">Sender: {r.senderName}</div>
-                  )}
-                  {r.transactionId && (
-                    <div className="text-xs text-black/50">TXN: {r.transactionId}</div>
-                  )}
-                </div>
-                <StatusBadge status={r.status} />
-              </div>
-
-              {r.screenshot && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={r.screenshot}
-                  alt="proof"
-                  className="mt-3 max-h-56 rounded-lg border border-black/10"
-                />
-              )}
-
-              {r.status === "pending" ? (
-                <DepositRow depositId={r.id} />
-              ) : (
-                r.adminNote && (
-                  <p className="mt-3 rounded-lg bg-[#f5f5f5] p-2 text-xs text-black/60">
-                    Note: {r.adminNote}
-                  </p>
-                )
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+      <div className="overflow-x-auto rounded-2xl bg-white shadow-sm">
+        <table className="w-full text-sm">
+          <thead className="border-b border-gray-200 bg-gray-50/50">
+            <tr>
+              <th className="px-4 py-3 text-left font-semibold text-gray-600">User</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-600">Plan</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-600">Amount</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-600">Method</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-600">Status</th>
+              <th className="px-4 py-3 text-left font-semibold text-gray-600">Date</th>
+              <th className="px-4 py-3 text-right font-semibold text-gray-600">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {allDeposits.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                  No deposits found.
+                </td>
+              </tr>
+            ) : (
+              allDeposits.map((deposit) => (
+                <DepositRow key={deposit.id} deposit={deposit} />
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    pending: "bg-yellow-100 text-yellow-700",
-    approved: "bg-green-100 text-green-700",
-    rejected: "bg-red-100 text-red-700",
-  };
-  return (
-    <span className={`rounded-full px-2 py-1 text-xs font-semibold capitalize ${map[status] ?? ""}`}>
-      {status}
-    </span>
   );
 }
