@@ -26,7 +26,7 @@ export default async function AdminDepositsPage() {
     .leftJoin(plans, eq(deposits.planId, plans.id))
     .orderBy(desc(deposits.createdAt));
 
-  // ✅ Convert Date objects to strings for the component
+  // ✅ Convert Date objects to strings
   const formattedDeposits = allDeposits.map((deposit) => ({
     ...deposit,
     approvedAt: deposit.approvedAt ? deposit.approvedAt.toISOString() : null,
