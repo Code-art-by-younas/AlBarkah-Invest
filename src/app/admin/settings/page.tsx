@@ -3,8 +3,26 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 
+interface Settings {
+  id: string;
+  siteName: string;
+  siteLogo: string | null;
+  opayName: string;
+  opayNumber: string;
+  sadapayName: string;
+  sadapayNumber: string;
+  minDeposit: string;
+  minWithdrawal: string;
+  referralLevels: {
+    level1: number;
+    level2: number;
+    level3: number;
+    level4: number;
+  };
+}
+
 export default function AdminSettingsPage() {
-  const [settings, setSettings] = useState<any>(null);
+  const [settings, setSettings] = useState<Settings | null>(null);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
@@ -15,9 +33,13 @@ export default function AdminSettingsPage() {
   const fetchSettings = async () => {
     try {
       const res = await fetch("/api/admin/settings");
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
       const data = await res.json();
       setSettings(data);
     } catch (err) {
+      console.error("Error fetching settings:", err);
       toast.error("Failed to load settings");
     } finally {
       setFetching(false);
@@ -26,6 +48,8 @@ export default function AdminSettingsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!settings) return;
+    
     setLoading(true);
     try {
       const res = await fetch("/api/admin/settings", {
@@ -45,8 +69,13 @@ export default function AdminSettingsPage() {
     }
   };
 
-  if (fetching) return <div className="text-center py-10">Loading settings...</div>;
-  if (!settings) return <div className="text-center py-10 text-red-500">Failed to load settings</div>;
+  if (fetching) {
+    return <div className="text-center py-10">Loading settings...</div>;
+  }
+
+  if (!settings) {
+    return <div className="text-center py-10 text-red-500">Failed to load settings</div>;
+  }
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
