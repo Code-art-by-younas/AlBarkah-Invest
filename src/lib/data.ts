@@ -4,18 +4,19 @@ import { asc, eq, or } from "drizzle-orm";
 import { hashPassword, generateReferralCode } from "@/lib/auth";
 
 export const PLANS_SEED = [
-  { name: "Plan 1", amount: 290, dailyProfit: 29, totalProfit: 2610 },
-  { name: "Plan 2", amount: 870, dailyProfit: 87, totalProfit: 7830 },
-  { name: "Plan 3", amount: 1740, dailyProfit: 174, totalProfit: 15660 },
-  { name: "Plan 4", amount: 3000, dailyProfit: 348, totalProfit: 31320 },
-  { name: "Plan 5", amount: 6300, dailyProfit: 696, totalProfit: 62640 },
-  { name: "Plan 6", amount: 12500, dailyProfit: 1392, totalProfit: 125280 },
-  { name: "Plan 7", amount: 20000, dailyProfit: 2250, totalProfit: 202500 },
-  { name: "Plan 8", amount: 25000, dailyProfit: 2784, totalProfit: 250560 },
-  { name: "Plan 9", amount: 48000, dailyProfit: 5568, totalProfit: 501120 },
-  { name: "Plan 10", amount: 100000, dailyProfit: 11136, totalProfit: 1002240 },
-  { name: "Plan 11", amount: 145000, dailyProfit: 16000, totalProfit: 1440000 },
-  { name: "Plan 12", amount: 190000, dailyProfit: 22000, totalProfit: 1980000 },
+  { name: "Plan 01", amount: 320, dailyProfit: 64, totalProfit: 5760 },
+  { name: "Plan 02", amount: 870, dailyProfit: 174, totalProfit: 15660 },
+  { name: "Plan 03", amount: 1470, dailyProfit: 294, totalProfit: 26460 },
+  { name: "Plan 04", amount: 3270, dailyProfit: 654, totalProfit: 58860 },
+  { name: "Plan 05", amount: 6270, dailyProfit: 1254, totalProfit: 112860 },
+  { name: "Plan 06", amount: 14770, dailyProfit: 2954, totalProfit: 265860 },
+  { name: "Plan 07", amount: 21770, dailyProfit: 4354, totalProfit: 391860 },
+  { name: "Plan 08", amount: 46770, dailyProfit: 9354, totalProfit: 841860 },
+  { name: "Plan 09", amount: 72770, dailyProfit: 14554, totalProfit: 1309860 },
+  { name: "Plan 10", amount: 96770, dailyProfit: 19354, totalProfit: 1741860 },
+  { name: "Plan 11", amount: 145770, dailyProfit: 29154, totalProfit: 2623860 },
+  { name: "Plan 12", amount: 245770, dailyProfit: 49154, totalProfit: 4423860 },
+  { name: "Plan 13", amount: 445770, dailyProfit: 95570, totalProfit: 8601300 },
 ];
 
 export async function ensureSeed() {
