@@ -21,8 +21,21 @@ interface Settings {
   };
 }
 
+const DEFAULT_SETTINGS: Settings = {
+  id: "",
+  siteName: "AlBarkah Invest",
+  siteLogo: null,
+  opayName: "Muhammad Shahzad Pervaiz",
+  opayNumber: "03320613270",
+  sadapayName: "Muhammad Shahzad Pervaiz",
+  sadapayNumber: "03320613270",
+  minDeposit: "290",
+  minWithdrawal: "29",
+  referralLevels: { level1: 11, level2: 3, level3: 2, level4: 1 },
+};
+
 export default function AdminSettingsPage() {
-  const [settings, setSettings] = useState<Settings | null>(null);
+  const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
@@ -37,10 +50,11 @@ export default function AdminSettingsPage() {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
       const data = await res.json();
-      setSettings(data);
+      setSettings({ ...DEFAULT_SETTINGS, ...data });
     } catch (err) {
       console.error("Error fetching settings:", err);
-      toast.error("Failed to load settings");
+      toast.error("Failed to load settings. Using defaults.");
+      setSettings(DEFAULT_SETTINGS);
     } finally {
       setFetching(false);
     }
@@ -48,8 +62,6 @@ export default function AdminSettingsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!settings) return;
-    
     setLoading(true);
     try {
       const res = await fetch("/api/admin/settings", {
@@ -69,12 +81,26 @@ export default function AdminSettingsPage() {
     }
   };
 
-  if (fetching) {
-    return <div className="text-center py-10">Loading settings...</div>;
-  }
+  const updateSetting = (key: keyof Settings, value: any) => {
+    setSettings({ ...settings, [key]: value });
+  };
 
-  if (!settings) {
-    return <div className="text-center py-10 text-red-500">Failed to load settings</div>;
+  const updateReferralLevel = (level: keyof Settings["referralLevels"], value: number) => {
+    setSettings({
+      ...settings,
+      referralLevels: { ...settings.referralLevels, [level]: value },
+    });
+  };
+
+  if (fetching) {
+    return (
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="text-2xl mb-2">⚙️</div>
+          <p className="text-gray-500">Loading settings...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -88,8 +114,8 @@ export default function AdminSettingsPage() {
           <input
             type="text"
             value={settings.siteName || ""}
-            onChange={(e) => setSettings({ ...settings, siteName: e.target.value })}
-            className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2"
+            onChange={(e) => updateSetting("siteName", e.target.value)}
+            className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#ffd700] focus:ring-1 focus:ring-[#ffd700]"
           />
         </div>
 
@@ -102,8 +128,8 @@ export default function AdminSettingsPage() {
               <input
                 type="text"
                 value={settings.opayName || ""}
-                onChange={(e) => setSettings({ ...settings, opayName: e.target.value })}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2"
+                onChange={(e) => updateSetting("opayName", e.target.value)}
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#ffd700] focus:ring-1 focus:ring-[#ffd700]"
               />
             </div>
             <div>
@@ -111,8 +137,8 @@ export default function AdminSettingsPage() {
               <input
                 type="text"
                 value={settings.opayNumber || ""}
-                onChange={(e) => setSettings({ ...settings, opayNumber: e.target.value })}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2"
+                onChange={(e) => updateSetting("opayNumber", e.target.value)}
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#ffd700] focus:ring-1 focus:ring-[#ffd700]"
               />
             </div>
           </div>
@@ -127,8 +153,8 @@ export default function AdminSettingsPage() {
               <input
                 type="text"
                 value={settings.sadapayName || ""}
-                onChange={(e) => setSettings({ ...settings, sadapayName: e.target.value })}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2"
+                onChange={(e) => updateSetting("sadapayName", e.target.value)}
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#ffd700] focus:ring-1 focus:ring-[#ffd700]"
               />
             </div>
             <div>
@@ -136,14 +162,14 @@ export default function AdminSettingsPage() {
               <input
                 type="text"
                 value={settings.sadapayNumber || ""}
-                onChange={(e) => setSettings({ ...settings, sadapayNumber: e.target.value })}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2"
+                onChange={(e) => updateSetting("sadapayNumber", e.target.value)}
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#ffd700] focus:ring-1 focus:ring-[#ffd700]"
               />
             </div>
           </div>
         </div>
 
-        {/* ===== Minimum Withdrawal ===== */}
+        {/* ===== Minimum Deposit & Withdrawal ===== */}
         <div className="border-t pt-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
@@ -151,8 +177,8 @@ export default function AdminSettingsPage() {
               <input
                 type="number"
                 value={settings.minDeposit || 290}
-                onChange={(e) => setSettings({ ...settings, minDeposit: e.target.value })}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2"
+                onChange={(e) => updateSetting("minDeposit", e.target.value)}
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#ffd700] focus:ring-1 focus:ring-[#ffd700]"
               />
             </div>
             <div>
@@ -160,8 +186,8 @@ export default function AdminSettingsPage() {
               <input
                 type="number"
                 value={settings.minWithdrawal || 29}
-                onChange={(e) => setSettings({ ...settings, minWithdrawal: e.target.value })}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2"
+                onChange={(e) => updateSetting("minWithdrawal", e.target.value)}
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#ffd700] focus:ring-1 focus:ring-[#ffd700]"
               />
             </div>
           </div>
@@ -176,13 +202,8 @@ export default function AdminSettingsPage() {
               <input
                 type="number"
                 value={settings.referralLevels?.level1 || 11}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    referralLevels: { ...settings.referralLevels, level1: Number(e.target.value) },
-                  })
-                }
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2"
+                onChange={(e) => updateReferralLevel("level1", Number(e.target.value))}
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#ffd700] focus:ring-1 focus:ring-[#ffd700]"
               />
             </div>
             <div>
@@ -190,13 +211,8 @@ export default function AdminSettingsPage() {
               <input
                 type="number"
                 value={settings.referralLevels?.level2 || 3}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    referralLevels: { ...settings.referralLevels, level2: Number(e.target.value) },
-                  })
-                }
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2"
+                onChange={(e) => updateReferralLevel("level2", Number(e.target.value))}
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#ffd700] focus:ring-1 focus:ring-[#ffd700]"
               />
             </div>
             <div>
@@ -204,13 +220,8 @@ export default function AdminSettingsPage() {
               <input
                 type="number"
                 value={settings.referralLevels?.level3 || 2}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    referralLevels: { ...settings.referralLevels, level3: Number(e.target.value) },
-                  })
-                }
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2"
+                onChange={(e) => updateReferralLevel("level3", Number(e.target.value))}
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#ffd700] focus:ring-1 focus:ring-[#ffd700]"
               />
             </div>
             <div>
@@ -218,13 +229,8 @@ export default function AdminSettingsPage() {
               <input
                 type="number"
                 value={settings.referralLevels?.level4 || 1}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    referralLevels: { ...settings.referralLevels, level4: Number(e.target.value) },
-                  })
-                }
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2"
+                onChange={(e) => updateReferralLevel("level4", Number(e.target.value))}
+                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-[#ffd700] focus:ring-1 focus:ring-[#ffd700]"
               />
             </div>
           </div>
