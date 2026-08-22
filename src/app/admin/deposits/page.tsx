@@ -1,7 +1,6 @@
 import { db } from "@/db";
 import { deposits, users, plans } from "@/db/schema";
-import { eq, desc, and } from "drizzle-orm";
-import { formatDistanceToNow } from "date-fns";
+import { eq, desc } from "drizzle-orm";
 import { DepositRow } from "./DepositRow";
 
 export const dynamic = "force-dynamic";
