@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-// ✅ SadaPay removed, OPay kept
+// ✅ SadaPay REMOVED, OPay KEPT, Easypaisa & JazzCash available for withdrawal only
 const METHODS = [
   { value: "easypaisa", label: "Easypaisa" },
   { value: "jazzcash", label: "JazzCash" },
