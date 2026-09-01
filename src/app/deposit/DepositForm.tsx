@@ -30,7 +30,9 @@ export function DepositForm({
   const router = useRouter();
   const [selectedPlan, setSelectedPlan] = useState<string>("");
   const [selectedMethod, setSelectedMethod] = useState<string>("");
-  const [screenshot, setScreenshot] = useState<string>(""); // ✅ base64 string
+  const [senderName, setSenderName] = useState("");
+  const [transactionId, setTransactionId] = useState("");
+  const [screenshot, setScreenshot] = useState<string>(""); // ✅ base64
   const [loading, setLoading] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,8 +52,25 @@ export function DepositForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedPlan || !selectedMethod || !screenshot) {
-      toast.error("Please select a plan, payment method, and upload screenshot.");
+
+    if (!selectedPlan) {
+      toast.error("Please select a plan");
+      return;
+    }
+    if (!selectedMethod) {
+      toast.error("Please select a payment method");
+      return;
+    }
+    if (!screenshot) {
+      toast.error("Please upload a payment screenshot");
+      return;
+    }
+    if (!senderName.trim()) {
+      toast.error("Please enter sender name");
+      return;
+    }
+    if (!transactionId.trim()) {
+      toast.error("Please enter transaction ID");
       return;
     }
 
@@ -64,19 +83,21 @@ export function DepositForm({
           planId: selectedPlan,
           method: selectedMethod,
           screenshot, // base64 string
-          senderName: "", // optional
-          transactionId: "", // optional
+          senderName: senderName.trim(),
+          transactionId: transactionId.trim(),
         }),
       });
+
       const data = await res.json();
+
       if (res.ok) {
-        toast.success("Deposit request submitted! Waiting for admin approval.");
+        toast.success("Deposit submitted! Waiting for admin approval.");
         router.push("/dashboard");
         router.refresh();
       } else {
         toast.error(data.error || "Something went wrong.");
       }
-    } catch (err) {
+    } catch {
       toast.error("Failed to submit deposit.");
     } finally {
       setLoading(false);
@@ -123,7 +144,7 @@ export function DepositForm({
         )}
       </div>
 
-      {/* Payment Method (Only OPay & others, but SadaPay removed from parent) */}
+      {/* Payment Method — SadaPay REMOVED */}
       <div className="rounded-2xl bg-white p-5 shadow-sm">
         <h3 className="font-bold text-[#0a2e1c]">2. Select Payment Method</h3>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-2">
@@ -159,9 +180,36 @@ export function DepositForm({
         )}
       </div>
 
+      {/* Sender Name + Transaction ID */}
+      <div className="rounded-2xl bg-white p-5 shadow-sm space-y-4">
+        <h3 className="font-bold text-[#0a2e1c]">3. Transaction Details</h3>
+        <div>
+          <label className="block text-sm font-semibold text-[#0a2e1c]">Sender Name</label>
+          <input
+            type="text"
+            value={senderName}
+            onChange={(e) => setSenderName(e.target.value)}
+            placeholder="e.g. Muhammad Ali"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-[#ffd700]"
+            required
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-semibold text-[#0a2e1c]">Transaction ID</label>
+          <input
+            type="text"
+            value={transactionId}
+            onChange={(e) => setTransactionId(e.target.value)}
+            placeholder="e.g. 1029384756"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-[#ffd700]"
+            required
+          />
+        </div>
+      </div>
+
       {/* Screenshot Upload */}
       <div className="rounded-2xl bg-white p-5 shadow-sm">
-        <h3 className="font-bold text-[#0a2e1c]">3. Upload Payment Screenshot</h3>
+        <h3 className="font-bold text-[#0a2e1c]">4. Upload Payment Screenshot</h3>
         <div className="mt-3">
           <input
             type="file"
