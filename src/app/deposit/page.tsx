@@ -1,4 +1,5 @@
-import { getSession } from "@/lib/auth";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { getPlans, getSettings } from "@/lib/data";
 import { DepositForm } from "./DepositForm";
 import { UserShell } from "@/components/user/UserShell";
@@ -7,11 +8,13 @@ export const dynamic = "force-dynamic";
 
 export default async function DepositPage() {
   try {
-    const session = await getSession();
+    const session = await getServerSession(authOptions);
+    
     let plans = [];
     try {
       plans = await getPlans();
-    } catch {
+    } catch (err) {
+      console.error("Failed to fetch plans:", err);
       plans = [];
     }
 
@@ -40,7 +43,7 @@ export default async function DepositPage() {
       },
     ];
 
-    const plansData = plans.map((p) => ({
+    const plansData = plans.map((p: any) => ({
       id: p.id,
       name: p.name,
       amount: p.amount,
