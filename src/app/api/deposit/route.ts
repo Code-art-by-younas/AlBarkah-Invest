@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/db";
-import { deposits, plans } from "@/db/schema";
+import { deposits, plans, transactions } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getSession } from "@/lib/auth";
 
 const schema = z.object({
   planId: z.string().uuid(),
+  method: z.string().optional(),
   screenshot: z.string().min(10),
   senderName: z.string().max(100).optional(),
   transactionId: z.string().max(100).optional(),
@@ -29,7 +30,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
     }
 
-    // limit screenshot size roughly (~2MB base64)
     if (screenshot.length > 3_000_000) {
       return NextResponse.json({ error: "Screenshot too large (max ~2MB)" }, { status: 400 });
     }
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     const [deposit] = await db
       .insert(deposits)
       .values({
-        userId: session.id,
+        userId: session.user.id,
         planId,
         amount: plan.amount,
         screenshot,
@@ -46,6 +46,16 @@ export async function POST(req: Request) {
         status: "pending",
       })
       .returning();
+
+    // ✅ Transaction record
+    await db.insert(transactions).values({
+      userId: session.user.id,
+      type: "deposit",
+      amount: plan.amount,
+      description: `Deposit request - ${plan.amount} PKR - Pending`,
+      status: "pending",
+      referenceId: deposit.id,
+    });
 
     return NextResponse.json({ success: true, depositId: deposit.id });
   } catch (e) {
