@@ -32,12 +32,15 @@ export function DepositForm({
   const [selectedMethod, setSelectedMethod] = useState<string>("");
   const [senderName, setSenderName] = useState("");
   const [transactionId, setTransactionId] = useState("");
-  const [screenshot, setScreenshot] = useState<string>(""); // ✅ base64
+  const [screenshot, setScreenshot] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      toast.error("No file selected");
+      return;
+    }
     if (file.size > 2 * 1024 * 1024) {
       toast.error("Image size must be less than 2MB");
       return;
@@ -82,7 +85,7 @@ export function DepositForm({
         body: JSON.stringify({
           planId: selectedPlan,
           method: selectedMethod,
-          screenshot, // base64 string
+          screenshot,
           senderName: senderName.trim(),
           transactionId: transactionId.trim(),
         }),
@@ -97,7 +100,8 @@ export function DepositForm({
       } else {
         toast.error(data.error || "Something went wrong.");
       }
-    } catch {
+    } catch (err) {
+      console.error("Deposit error:", err);
       toast.error("Failed to submit deposit.");
     } finally {
       setLoading(false);
@@ -106,6 +110,15 @@ export function DepositForm({
 
   const selectedPlanData = plans.find((p) => p.id === selectedPlan);
   const selectedMethodData = paymentMethods.find((m) => m.id === selectedMethod);
+
+  // ✅ If no plans, show message
+  if (plans.length === 0) {
+    return (
+      <div className="rounded-2xl bg-white p-8 text-center shadow-sm">
+        <p className="text-gray-600">No active plans available. Please check back later.</p>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -144,7 +157,7 @@ export function DepositForm({
         )}
       </div>
 
-      {/* Payment Method — SadaPay REMOVED */}
+      {/* Payment Method */}
       <div className="rounded-2xl bg-white p-5 shadow-sm">
         <h3 className="font-bold text-[#0a2e1c]">2. Select Payment Method</h3>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-2">
@@ -180,7 +193,7 @@ export function DepositForm({
         )}
       </div>
 
-      {/* Sender Name + Transaction ID */}
+      {/* Transaction Details */}
       <div className="rounded-2xl bg-white p-5 shadow-sm space-y-4">
         <h3 className="font-bold text-[#0a2e1c]">3. Transaction Details</h3>
         <div>
