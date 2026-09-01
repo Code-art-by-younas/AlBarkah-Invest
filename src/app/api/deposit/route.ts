@@ -14,10 +14,12 @@ const schema = z.object({
 });
 
 export async function POST(req: Request) {
-  const session = await getSession();
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
   try {
+    const session = await getSession();
+    if (!session || !session.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await req.json();
     const parsed = schema.safeParse(body);
     if (!parsed.success) {
@@ -47,7 +49,6 @@ export async function POST(req: Request) {
       })
       .returning();
 
-    // ✅ Transaction record
     await db.insert(transactions).values({
       userId: session.user.id,
       type: "deposit",
@@ -58,8 +59,8 @@ export async function POST(req: Request) {
     });
 
     return NextResponse.json({ success: true, depositId: deposit.id });
-  } catch (e) {
-    console.error(e);
-    return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
+  } catch (error) {
+    console.error("Deposit API error:", error);
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
