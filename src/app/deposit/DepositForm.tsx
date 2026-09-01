@@ -111,7 +111,6 @@ export function DepositForm({
   const selectedPlanData = plans.find((p) => p.id === selectedPlan);
   const selectedMethodData = paymentMethods.find((m) => m.id === selectedMethod);
 
-  // ✅ If no plans, show message
   if (plans.length === 0) {
     return (
       <div className="rounded-2xl bg-white p-8 text-center shadow-sm">
@@ -157,7 +156,7 @@ export function DepositForm({
         )}
       </div>
 
-      {/* Payment Method */}
+      {/* Payment Method — ONLY OPay */}
       <div className="rounded-2xl bg-white p-5 shadow-sm">
         <h3 className="font-bold text-[#0a2e1c]">2. Select Payment Method</h3>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-2">
