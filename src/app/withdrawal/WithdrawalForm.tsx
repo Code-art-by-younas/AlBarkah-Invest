@@ -3,10 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+// ✅ SadaPay removed, OPay kept
 const METHODS = [
   { value: "easypaisa", label: "Easypaisa" },
   { value: "jazzcash", label: "JazzCash" },
-  { value: "sadapay", label: "SadaPay" },
   { value: "opay", label: "OPay" },
   { value: "bank", label: "Bank Transfer" },
 ];
