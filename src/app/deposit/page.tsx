@@ -1,6 +1,6 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { getPlans, getSettings } from "@/lib/data";
+import { getPlans } from "@/lib/data";
 import { DepositForm } from "./DepositForm";
 import { UserShell } from "@/components/user/UserShell";
 
@@ -9,37 +9,21 @@ export const dynamic = "force-dynamic";
 export default async function DepositPage() {
   try {
     const session = await getServerSession(authOptions);
-    
     let plans = [];
     try {
       plans = await getPlans();
-    } catch (err) {
-      console.error("Failed to fetch plans:", err);
+    } catch {
       plans = [];
     }
 
-    // ✅ Payment methods: SadaPay REMOVED, OPay KEPT
+    // ✅ ONLY OPay for deposit
     const paymentMethods = [
-      {
-        id: "easypaisa",
-        label: "Easypaisa",
-        icon: "📱",
-        accountName: "Mohammed Younas",
-        accountNumber: "03292993220",
-      },
-      {
-        id: "jazzcash",
-        label: "JazzCash",
-        icon: "📱",
-        accountName: "Mohammed Younas",
-        accountNumber: "03292993220",
-      },
       {
         id: "opay",
         label: "OPay",
         icon: "💳",
-        accountName: "Mohammed Younas",
-        accountNumber: "03292993220",
+        accountName: "Muhammad Shahzad Pervaiz",
+        accountNumber: "03320613270",
       },
     ];
 
@@ -58,7 +42,7 @@ export default async function DepositPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Make a Deposit</h1>
           <p className="text-xs text-slate-400 mt-1">
-            Select plan, send payment via OPay / Easypaisa / JazzCash, and upload receipt.
+            Select plan, send payment via OPay, and upload receipt.
           </p>
         </div>
 
@@ -74,7 +58,7 @@ export default async function DepositPage() {
               </div>
               <ul className="list-disc list-inside text-xs text-slate-300 space-y-1">
                 <li>Minimum deposit: <span className="text-[#FFD700] font-bold">150 PKR</span></li>
-                <li>Send exact amount to the number shown</li>
+                <li>Send exact amount to OPay number shown</li>
                 <li>Keep the screenshot clear</li>
                 <li>Approval usually takes 15-30 minutes</li>
               </ul>
