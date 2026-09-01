@@ -30,8 +30,23 @@ export function DepositForm({
   const router = useRouter();
   const [selectedPlan, setSelectedPlan] = useState<string>("");
   const [selectedMethod, setSelectedMethod] = useState<string>("");
-  const [screenshot, setScreenshot] = useState<File | null>(null);
+  const [screenshot, setScreenshot] = useState<string>(""); // ✅ base64 string
   const [loading, setLoading] = useState(false);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Image size must be less than 2MB");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setScreenshot(reader.result as string);
+      toast.success("Screenshot loaded!");
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,15 +56,17 @@ export function DepositForm({
     }
 
     setLoading(true);
-    const formData = new FormData();
-    formData.append("planId", selectedPlan);
-    formData.append("method", selectedMethod);
-    formData.append("screenshot", screenshot);
-
     try {
       const res = await fetch("/api/deposit", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          planId: selectedPlan,
+          method: selectedMethod,
+          screenshot, // base64 string
+          senderName: "", // optional
+          transactionId: "", // optional
+        }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -71,7 +88,7 @@ export function DepositForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* ===== Plan Selection ===== */}
+      {/* Plan Selection */}
       <div className="rounded-2xl bg-white p-5 shadow-sm">
         <h3 className="font-bold text-[#0a2e1c]">1. Choose Your Plan</h3>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
@@ -106,7 +123,7 @@ export function DepositForm({
         )}
       </div>
 
-      {/* ===== Payment Method Selection (Only OPay & SadaPay) ===== */}
+      {/* Payment Method (Only OPay & others, but SadaPay removed from parent) */}
       <div className="rounded-2xl bg-white p-5 shadow-sm">
         <h3 className="font-bold text-[#0a2e1c]">2. Select Payment Method</h3>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-2">
@@ -142,18 +159,34 @@ export function DepositForm({
         )}
       </div>
 
-      {/* ===== Screenshot Upload ===== */}
+      {/* Screenshot Upload */}
       <div className="rounded-2xl bg-white p-5 shadow-sm">
         <h3 className="font-bold text-[#0a2e1c]">3. Upload Payment Screenshot</h3>
         <div className="mt-3">
           <input
             type="file"
             accept="image/*"
-            onChange={(e) => setScreenshot(e.target.files?.[0] || null)}
+            onChange={handleFileChange}
             className="w-full rounded-lg border border-gray-300 p-2 text-sm"
           />
+          {screenshot && (
+            <div className="mt-2">
+              <img
+                src={screenshot}
+                alt="Screenshot preview"
+                className="max-h-40 rounded-lg border"
+              />
+              <button
+                type="button"
+                onClick={() => setScreenshot("")}
+                className="mt-1 text-xs text-red-600 hover:underline"
+              >
+                Remove
+              </button>
+            </div>
+          )}
           <p className="mt-1 text-xs text-gray-500">
-            Upload a clear screenshot of your successful transaction.
+            Upload a clear screenshot of your successful transaction (max 2MB).
           </p>
         </div>
       </div>
