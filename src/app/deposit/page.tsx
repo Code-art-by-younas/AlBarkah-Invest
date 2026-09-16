@@ -1,98 +1,59 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import { getPlans } from "@/lib/data";
+import { getSession } from "@/lib/auth";
+import { getPlans, getSettings } from "@/lib/data";
 import { DepositForm } from "./DepositForm";
 import { UserShell } from "@/components/user/UserShell";
 
 export const dynamic = "force-dynamic";
 
 export default async function DepositPage() {
-  try {
-    const session = await getServerSession(authOptions);
-    let plans = [];
-    try {
-      plans = await getPlans();
-    } catch {
-      plans = [];
-    }
+  const [session, plans, settings] = await Promise.all([
+    getSession(),
+    getPlans(),
+    getSettings(),
+  ]);
 
-    // ✅ ONLY OPay for deposit
-    const paymentMethods = [
-      {
-        id: "opay",
-        label: "OPay",
-        icon: "💳",
-        accountName: "Muhammad Shahzad Pervaiz",
-        accountNumber: "03320613270",
-      },
-    ];
+  const plansData = plans.map((p) => ({
+    id: p.id,
+    name: p.name,
+    amount: p.amount,
+    dailyProfit: p.dailyProfit,
+    totalProfit: p.totalProfit,
+  }));
 
-    const plansData = plans.map((p: any) => ({
-      id: p.id,
-      name: p.name,
-      amount: p.amount,
-      dailyProfit: p.dailyProfit,
-      totalProfit: p.totalProfit,
-    }));
-
-    const whatsappChannelLink = "https://whatsapp.com/channel/0029VbDGJWs8fewqixXOVn2y";
-
-    const content = (
-      <div className="max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8">
+  return (
+    <UserShell username={session?.username ?? "Guest"}>
+      <div className="space-y-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white">Make a Deposit</h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Select plan, send payment via OPay, and upload receipt.
+          <h1 className="text-2xl font-extrabold text-[#0a2e1c]">Make a Deposit</h1>
+          <p className="text-sm text-black/60">
+            Pay via OPay, then submit your payment proof for approval.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <DepositForm plans={plansData} paymentMethods={paymentMethods} />
-          </div>
-
-          <div className="space-y-6">
-            <div className="p-6 rounded-3xl bg-gradient-to-b from-[#132a4e] to-[#0f213d] border border-[#00D4FF]/30 shadow-xl space-y-4">
-              <div className="flex items-center gap-2 text-[#FFD700]">
-                <span className="text-sm font-bold">📌 Important</span>
-              </div>
-              <ul className="list-disc list-inside text-xs text-slate-300 space-y-1">
-                <li>Minimum deposit: <span className="text-[#FFD700] font-bold">150 PKR</span></li>
-                <li>Send exact amount to OPay number shown</li>
-                <li>Keep the screenshot clear</li>
-                <li>Approval usually takes 15-30 minutes</li>
-              </ul>
-              <div className="pt-4 border-t border-[#1e3a66]">
-                <p className="text-xs text-slate-400">📢 Join our WhatsApp Channel</p>
-                <a
-                  href={whatsappChannelLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[#00D4FF] hover:underline text-sm font-bold"
-                >
-                  Click here to join →
-                </a>
-              </div>
+        <div className="rounded-2xl border border-[#ffd700]/50 bg-[#fffbe6] p-5">
+          <h2 className="font-bold text-[#0a2e1c]">💳 OPay Payment Details</h2>
+          <div className="mt-3 grid gap-2 text-sm sm:grid-cols-3">
+            <div className="rounded-lg bg-white p-3">
+              <div className="text-xs text-black/50">Account Name</div>
+              <div className="font-bold text-[#0a2e1c]">{settings.opayName}</div>
+            </div>
+            <div className="rounded-lg bg-white p-3">
+              <div className="text-xs text-black/50">OPay Number</div>
+              <div className="font-bold text-[#0a2e1c]">{settings.opayNumber}</div>
+            </div>
+            <div className="rounded-lg bg-white p-3">
+              <div className="text-xs text-black/50">Min Deposit</div>
+              <div className="font-bold text-[#0a2e1c]">{settings.minDeposit} PKR</div>
             </div>
           </div>
+          <p className="mt-3 text-xs text-black/60">
+            Transfer the exact plan amount to the OPay number above, take a screenshot of the successful
+            transaction, then submit it below.
+          </p>
         </div>
-      </div>
-    );
 
-    return session ? (
-      <UserShell username={session.user?.username || "User"}>{content}</UserShell>
-    ) : (
-      content
-    );
-  } catch (error) {
-    console.error("Deposit page error:", error);
-    return (
-      <div className="min-h-screen bg-[#0a1628] flex items-center justify-center text-white">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">Something went wrong</h1>
-          <p className="text-slate-400 mt-2">Please try refreshing the page.</p>
-        </div>
+        <DepositForm plans={plansData} />
       </div>
-    );
-  }
+    </UserShell>
+  );
 }
