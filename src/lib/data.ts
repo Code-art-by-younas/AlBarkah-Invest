@@ -3,7 +3,6 @@ import { plans, settings, users } from "@/db/schema";
 import { asc, eq, or } from "drizzle-orm";
 import { hashPassword, generateReferralCode } from "@/lib/auth";
 
-// ✅ New 13 Plans as per client image
 export const PLANS_SEED = [
   { name: "Plan 01", amount: 320, dailyProfit: 64, totalProfit: 5760 },
   { name: "Plan 02", amount: 870, dailyProfit: 174, totalProfit: 15660 },
@@ -20,11 +19,17 @@ export const PLANS_SEED = [
   { name: "Plan 13", amount: 445770, dailyProfit: 95570, totalProfit: 8601300 },
 ];
 
+let seedChecked = false;
+
 export async function ensureSeed() {
+  // Sirf ek baar check karo per server start
+  if (seedChecked) return;
+  seedChecked = true;
+
   // === Plans ===
   const existingPlans = await db.select().from(plans).limit(1);
   if (existingPlans.length === 0) {
-    // Insert if no plans exist
+    // Sirf tab insert karo jab bilkul khali ho
     await db.insert(plans).values(
       PLANS_SEED.map((p, i) => ({
         name: p.name,
@@ -36,29 +41,13 @@ export async function ensureSeed() {
         sortOrder: i,
       }))
     );
-  } else {
-    // ✅ Update existing plans to new ones (in case old plans exist)
-    // First delete all existing plans
-    await db.delete(plans);
-    // Then insert new plans
-    await db.insert(plans).values(
-      PLANS_SEED.map((p, i) => ({
-        name: p.name,
-        amount: String(p.amount),
-        dailyProfit: String(p.dailyProfit),
-        totalProfit: String(p.totalProfit),
-        duration: 90,
-        isActive: true,
-        sortOrder: i,
-      }))
-    );
-    console.log("✅ Plans updated to new 13 plans!");
+    console.log("✅ Plans seeded!");
   }
+  // ❌ DELETE HATA DIYA — ab plans delete nahi honge
 
   // === Settings ===
   const existingSettings = await db.select().from(settings).limit(1);
   if (existingSettings.length === 0) {
-    // Insert default settings
     await db.insert(settings).values({
       siteName: "AlBarkah Invest",
       siteLogo: null,
@@ -71,29 +60,15 @@ export async function ensureSeed() {
       sadapayName: "Muhammad Shahzad Pervaiz",
       sadapayNumber: "03320613270",
       minDeposit: "290",
-      minWithdrawal: "29", // ✅ Updated to 29
+      minWithdrawal: "29",
       referralLevels: {
         level1: 11,
         level2: 3,
         level3: 2,
         level4: 1,
-      }, // ✅ New referral levels
+      },
     });
-  } else {
-    // ✅ Update settings to ensure correct values
-    await db
-      .update(settings)
-      .set({
-        minWithdrawal: "29",
-        referralLevels: {
-          level1: 11,
-          level2: 3,
-          level3: 2,
-          level4: 1,
-        },
-      })
-      .where(eq(settings.id, existingSettings[0].id));
-    console.log("✅ Settings updated: minWithdrawal=29, referral levels=11/3/2/1");
+    console.log("✅ Settings seeded!");
   }
 
   await ensureAdmin();
@@ -107,29 +82,10 @@ export async function ensureAdmin() {
   const existing = await db
     .select()
     .from(users)
-    .where(
-      or(
-        eq(users.email, email),
-        eq(users.username, username)
-      )
-    )
+    .where(or(eq(users.email, email), eq(users.username, username)))
     .limit(1);
 
-  if (existing.length > 0) {
-    const hashed = await hashPassword(password);
-    await db
-      .update(users)
-      .set({
-        email: email,
-        username: username,
-        password: hashed,
-        role: "admin",
-        status: "active",
-      })
-      .where(eq(users.id, existing[0].id));
-    console.log("✅ Admin updated successfully!");
-    return;
-  }
+  if (existing.length > 0) return; // pehle se hai, kuch na karo
 
   const hashed = await hashPassword(password);
   await db.insert(users).values({
@@ -140,7 +96,7 @@ export async function ensureAdmin() {
     role: "admin",
     status: "active",
   });
-  console.log("✅ Admin created successfully!");
+  console.log("✅ Admin created!");
 }
 
 export async function getSettings() {
