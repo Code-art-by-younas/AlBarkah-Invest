@@ -29,7 +29,9 @@ export function DepositForm({
 }) {
   const router = useRouter();
   const [selectedPlan, setSelectedPlan] = useState<string>("");
-  const [selectedMethod, setSelectedMethod] = useState<string>("");
+  const [selectedMethod, setSelectedMethod] = useState<string>(
+    paymentMethods[0]?.id ?? ""
+  );
   const [senderName, setSenderName] = useState("");
   const [transactionId, setTransactionId] = useState("");
   const [screenshot, setScreenshot] = useState<string>("");
@@ -121,10 +123,10 @@ export function DepositForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Plan Selection */}
+      {/* ===== 1. Plan Selection ===== */}
       <div className="rounded-2xl bg-white p-5 shadow-sm">
-        <h3 className="font-bold text-[#0a2e1c]">1. Choose Your Plan</h3>
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        <h3 className="mb-3 font-bold text-[#0a2e1c]">1. Choose Your Plan</h3>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {plans.map((plan) => (
             <button
               key={plan.id}
@@ -132,7 +134,7 @@ export function DepositForm({
               onClick={() => setSelectedPlan(plan.id)}
               className={`rounded-lg border p-3 text-center transition ${
                 selectedPlan === plan.id
-                  ? "border-[#ffd700] bg-[#ffd700]/10"
+                  ? "border-[#ffd700] bg-[#ffd700]/10 ring-2 ring-[#ffd700]/40"
                   : "border-gray-200 hover:border-[#ffd700]/50"
               }`}
             >
@@ -156,105 +158,126 @@ export function DepositForm({
         )}
       </div>
 
-      {/* Payment Method — ONLY OPay */}
+      {/* ===== 2. Payment Method (Sirf OPay) ===== */}
       <div className="rounded-2xl bg-white p-5 shadow-sm">
-        <h3 className="font-bold text-[#0a2e1c]">2. Select Payment Method</h3>
-        <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-2">
-          {paymentMethods.map((method) => (
-            <button
-              key={method.id}
-              type="button"
-              onClick={() => setSelectedMethod(method.id)}
-              className={`rounded-lg border p-3 text-center transition ${
-                selectedMethod === method.id
-                  ? "border-[#ffd700] bg-[#ffd700]/10"
-                  : "border-gray-200 hover:border-[#ffd700]/50"
-              }`}
-            >
-              <span className="text-2xl">{method.icon}</span>
-              <p className="mt-1 text-sm font-medium">{method.label}</p>
-            </button>
-          ))}
-        </div>
-        {selectedMethodData && (
-          <div className="mt-3 rounded-lg bg-gray-50 p-3 text-sm">
-            <p>
-              <span className="font-medium">Account Name:</span>{" "}
-              {selectedMethodData.accountName}
-            </p>
-            <p>
-              <span className="font-medium">Account Number:</span>{" "}
-              <span className="font-bold text-[#0a2e1c]">
-                {selectedMethodData.accountNumber}
-              </span>
-            </p>
+        <h3 className="mb-3 font-bold text-[#0a2e1c]">2. Payment Method</h3>
+
+        <div className="rounded-xl border-2 border-[#0a2e1c]/10 bg-[#0a2e1c]/5 p-4">
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0a2e1c] text-lg text-white">
+              💳
+            </span>
+            <div>
+              <p className="font-bold text-[#0a2e1c]">OPay</p>
+              <p className="text-xs text-gray-600">
+                Send payment to the account below
+              </p>
+            </div>
           </div>
+
+          <div className="mt-4 space-y-2 rounded-lg bg-white p-3 text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600">Account Name</span>
+              <span className="font-semibold text-[#0a2e1c]">
+                {paymentMethods[0]?.accountName ?? "—"}
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-gray-600">Account Number</span>
+              <span className="font-mono font-bold text-[#0a2e1c]">
+                {paymentMethods[0]?.accountNumber ?? "—"}
+              </span>
+            </div>
+          </div>
+
+          <p className="mt-3 text-xs text-black/60">
+            Transfer the exact plan amount to this OPay number, then upload your screenshot below.
+          </p>
+        </div>
+
+        {paymentMethods.length === 0 && (
+          <p className="mt-3 text-sm text-red-600">
+            Payment method not configured. Please contact support.
+          </p>
         )}
       </div>
 
-      {/* Transaction Details */}
-      <div className="rounded-2xl bg-white p-5 shadow-sm space-y-4">
-        <h3 className="font-bold text-[#0a2e1c]">3. Transaction Details</h3>
-        <div>
-          <label className="block text-sm font-semibold text-[#0a2e1c]">Sender Name</label>
-          <input
-            type="text"
-            value={senderName}
-            onChange={(e) => setSenderName(e.target.value)}
-            placeholder="e.g. Muhammad Ali"
-            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-[#ffd700]"
-            required
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-semibold text-[#0a2e1c]">Transaction ID</label>
-          <input
-            type="text"
-            value={transactionId}
-            onChange={(e) => setTransactionId(e.target.value)}
-            placeholder="e.g. 1029384756"
-            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-[#ffd700]"
-            required
-          />
+      {/* ===== 3. Transaction Details ===== */}
+      <div className="rounded-2xl bg-white p-5 shadow-sm">
+        <h3 className="mb-4 font-bold text-[#0a2e1c]">3. Transaction Details</h3>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-semibold text-[#0a2e1c]">
+              Sender Name
+            </label>
+            <input
+              type="text"
+              value={senderName}
+              onChange={(e) => setSenderName(e.target.value)}
+              placeholder="e.g. Muhammad Ali"
+              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-[#ffd700]"
+              required
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-[#0a2e1c]">
+              Transaction ID
+            </label>
+            <input
+              type="text"
+              value={transactionId}
+              onChange={(e) => setTransactionId(e.target.value)}
+              placeholder="e.g. 1029384756"
+              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm outline-none focus:border-[#ffd700]"
+              required
+            />
+          </div>
         </div>
       </div>
 
-      {/* Screenshot Upload */}
+      {/* ===== 4. Screenshot Upload ===== */}
       <div className="rounded-2xl bg-white p-5 shadow-sm">
-        <h3 className="font-bold text-[#0a2e1c]">4. Upload Payment Screenshot</h3>
-        <div className="mt-3">
+        <h3 className="mb-3 font-bold text-[#0a2e1c]">4. Upload Payment Screenshot</h3>
+
+        <label className="flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 p-6 text-center transition hover:border-[#ffd700]">
           <input
             type="file"
             accept="image/*"
             onChange={handleFileChange}
-            className="w-full rounded-lg border border-gray-300 p-2 text-sm"
+            className="hidden"
           />
-          {screenshot && (
-            <div className="mt-2">
-              <img
-                src={screenshot}
-                alt="Screenshot preview"
-                className="max-h-40 rounded-lg border"
-              />
-              <button
-                type="button"
-                onClick={() => setScreenshot("")}
-                className="mt-1 text-xs text-red-600 hover:underline"
-              >
-                Remove
-              </button>
-            </div>
-          )}
-          <p className="mt-1 text-xs text-gray-500">
-            Upload a clear screenshot of your successful transaction (max 2MB).
-          </p>
-        </div>
+          <span className="text-3xl">📷</span>
+          <span className="mt-2 text-sm font-medium text-[#0a2e1c]">
+            Click to upload screenshot
+          </span>
+          <span className="mt-1 text-xs text-gray-500">
+            PNG, JPG (max 2MB)
+          </span>
+        </label>
+
+        {screenshot && (
+          <div className="mt-3">
+            <img
+              src={screenshot}
+              alt="Screenshot preview"
+              className="max-h-48 rounded-lg border"
+            />
+            <button
+              type="button"
+              onClick={() => setScreenshot("")}
+              className="mt-2 text-xs font-medium text-red-600 hover:underline"
+            >
+              ✕ Remove Screenshot
+            </button>
+          </div>
+        )}
       </div>
 
+      {/* ===== Submit ===== */}
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-xl bg-[#ffd700] py-3 font-bold text-[#0a2e1c] transition hover:bg-[#e6c200] disabled:opacity-50"
+        className="w-full rounded-xl bg-[#ffd700] py-3 font-bold text-[#0a2e1c] transition hover:bg-[#e6c200] disabled:cursor-not-allowed disabled:opacity-50"
       >
         {loading ? "Submitting..." : "Submit Deposit Request"}
       </button>
