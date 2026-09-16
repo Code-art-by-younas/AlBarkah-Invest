@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import { db } from "@/db";
 import { deposits, plans, transactions } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -16,8 +15,8 @@ const schema = z.object({
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
+    const session = await getSession();
+    if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -40,7 +39,7 @@ export async function POST(req: Request) {
     const [deposit] = await db
       .insert(deposits)
       .values({
-        userId: session.user.id,
+        userId: session.id,
         planId,
         amount: plan.amount,
         screenshot,
@@ -51,7 +50,7 @@ export async function POST(req: Request) {
       .returning();
 
     await db.insert(transactions).values({
-      userId: session.user.id,
+      userId: session.id,
       type: "deposit",
       amount: plan.amount,
       description: `Deposit request - ${plan.amount} PKR - Pending`,
