@@ -20,7 +20,7 @@ export default async function DepositPage() {
     totalProfit: p.totalProfit,
   }));
 
-  // ✅ Settings se payment methods banao
+  // ✅ Sirf OPay — settings se aata hai
   const paymentMethods = [
     {
       id: "opay",
@@ -28,27 +28,6 @@ export default async function DepositPage() {
       icon: "💳",
       accountName: settings.opayName,
       accountNumber: settings.opayNumber,
-    },
-    {
-      id: "easypaisa",
-      label: "Easypaisa",
-      icon: "📱",
-      accountName: settings.easypaisaName,
-      accountNumber: settings.easypaisaNumber,
-    },
-    {
-      id: "jazzcash",
-      label: "JazzCash",
-      icon: "📲",
-      accountName: settings.jazzcashName,
-      accountNumber: settings.jazzcashNumber,
-    },
-    {
-      id: "sadapay",
-      label: "SadaPay",
-      icon: "💠",
-      accountName: settings.sadapayName,
-      accountNumber: settings.sadapayNumber,
     },
   ];
 
@@ -58,7 +37,7 @@ export default async function DepositPage() {
         <div>
           <h1 className="text-2xl font-extrabold text-[#0a2e1c]">Make a Deposit</h1>
           <p className="text-sm text-black/60">
-            Choose a payment method, then submit your payment proof for approval.
+            Pay via OPay, then submit your payment proof for approval.
           </p>
         </div>
 
