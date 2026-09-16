@@ -1,8 +1,7 @@
 import { getSession } from "@/lib/auth";
 import { getPlans, getSettings } from "@/lib/data";
 import { DepositForm } from "./DepositForm";
-import { UserShell } from "@/components/user/UserShell";
-
+import { UserShell } from "@/components/UserShell";
 export const dynamic = "force-dynamic";
 
 export default async function DepositPage() {
