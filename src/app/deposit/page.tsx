@@ -22,14 +22,14 @@ export default async function DepositPage() {
 
   // ✅ Sirf OPay — settings se aata hai
   const paymentMethods = [
-    {
-      id: "opay",
-      label: "OPay",
-      icon: "💳",
-      accountName: settings.opayName,
-      accountNumber: settings.opayNumber,
-    },
-  ];
+  {
+    id: "opay",
+    label: "OPay",
+    icon: "💳",
+    accountName: "Muhammad Shahzad Pervaiz",
+    accountNumber: "03320613270",
+  },
+];
 
   return (
     <UserShell username={session?.username ?? "Guest"}>
